@@ -1,7 +1,7 @@
 # Backend Libs and code to return the fetched page, and strip bload (will add CSS and auto-cite later)
 # Mackinley Morrone, 9/28/2026
 from js import Response, fetch
-from readability import Document
+from bs4 import BeautifulSoup
 MLA_CITATION_PROMPT = """You are an expert citation assistant specializing in MLA (Modern Language Association) style, 9th edition.
 
 TASK:
@@ -116,7 +116,6 @@ Respond with ONLY a valid JSON object — no extra text, no markdown code fences
 REFERENCE ARTICLE:
 """
 
-
 async def on_fetch(request):
     try:
         worker_url = str(request.url)
@@ -143,16 +142,52 @@ async def on_fetch(request):
 
         html = await resp.text()
 
-        article = Document(str(html))
+        soup = BeautifulSoup(str(html), "html.parser")
+
+        # Remove common junk
+        for tag in soup([
+            "script",
+            "style",
+            "noscript",
+            "iframe",
+            "svg",
+            "nav",
+            "footer",
+            "header",
+            "aside",
+            "form"
+        ]):
+            tag.decompose()
+
+        title = "Untitled"
+        if soup.title and soup.title.string:
+            title = soup.title.string.strip()
+
+        # Prefer <main>
+        content = soup.find("main")
+
+        # Fall back to article
+        if content is None:
+            content = soup.find("article")
+
+        # Fall back to body
+        if content is None:
+            content = soup.body
+
+        # Last resort
+        if content is None:
+            content_html = str(soup)
+        else:
+            content_html = str(content)
 
         output = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>{article.title()}</title>
+<title>{title}</title>
 </head>
 <body>
-{article.summary()}
+{content_html}
 </body>
 </html>"""
 
@@ -171,5 +206,3 @@ async def on_fetch(request):
             f"Error: {e}",
             {"status": 500}
         )
-
-    
