@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Nannite",
+  "version": "1.0",
+  "description": "Opens Web Pages in Minimal, Research-Centric UI with including Citations for Each Page",
+  "permissions": [
+    "contextMenus"
+  ],
+  "background": {
+    "service_worker": "sw.js"
+  }
+}
