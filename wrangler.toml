@@ -1,7 +1,3 @@
 name = "nannite-server"
-main = "server/parser.py"
+main = "server/parser.js"
 compatibility_date = "2026-04-20"
-
-compatibility_flags = ["python_workers"]
-[python_modules]
-exclude = ["**/*.pyc", "**/__pycache__"]
